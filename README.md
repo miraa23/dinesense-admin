@@ -1,4 +1,4 @@
 # dinesense-admin
-ID AND PASSWORD FOR ADMIN LOGIN:
-mirako
-dinesense2025
+ADMIN LOGIN:
+ID : mirako
+PASSWORD : dinesense2025
