@@ -1,0 +1,2 @@
+# dinesense-admin
+ID AND PASSWORD FOR ADMIN LOGIN:
