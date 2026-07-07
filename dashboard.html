@@ -1,0 +1,965 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>DineSense Admin | Dashboard</title>
+  <link rel="stylesheet" href="dash.css">
+
+  <style>
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+      align-items: start;
+    }
+
+    .clean-insight-card {
+      min-height: auto;
+    }
+
+    .insight-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .insight-header h3 {
+      margin: 0;
+    }
+
+    .insight-badge {
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: #fff2d8;
+      border: 1px solid #ead7ad;
+      font-size: 12px;
+      font-weight: 900;
+      color: #8a640d;
+      white-space: nowrap;
+    }
+
+    .insight-summary {
+      padding: 16px;
+      border-radius: 20px;
+      border: 1px solid #ead7ad;
+      background: linear-gradient(135deg, #fff8e8, #ffffff);
+      margin-bottom: 14px;
+    }
+
+    .insight-summary strong {
+      display: block;
+      font-size: 15px;
+      color: #1f2937;
+      margin-bottom: 6px;
+    }
+
+    .insight-summary span {
+      display: block;
+      font-size: 12.8px;
+      font-weight: 700;
+      color: #6b7280;
+      line-height: 1.45;
+    }
+
+    .compact-stats {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .compact-stat {
+      padding: 14px;
+      border-radius: 18px;
+      border: 1px solid #ead7ad;
+      background: #fffaf0;
+    }
+
+    .compact-stat .label {
+      display: block;
+      font-size: 12px;
+      font-weight: 900;
+      color: #6b7280;
+      margin-bottom: 6px;
+    }
+
+    .compact-stat .value {
+      display: block;
+      font-size: 24px;
+      font-weight: 1000;
+      color: #1f2937;
+      line-height: 1;
+    }
+
+    .compact-stat .note {
+      display: block;
+      margin-top: 6px;
+      font-size: 11.5px;
+      font-weight: 700;
+      color: #6b7280;
+    }
+
+    .suggestion-list {
+      display: grid;
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .suggestion-item {
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+      padding: 12px;
+      border-radius: 16px;
+      border: 1px solid #ead7ad;
+      background: #fff;
+    }
+
+    .suggestion-item .icon {
+      width: 34px;
+      height: 34px;
+      border-radius: 12px;
+      background: #fff2d8;
+      display: grid;
+      place-items: center;
+      font-size: 16px;
+      flex: 0 0 auto;
+    }
+
+    .suggestion-item strong {
+      display: block;
+      font-size: 12.8px;
+      color: #1f2937;
+      margin-bottom: 3px;
+    }
+
+    .suggestion-item span {
+      display: block;
+      font-size: 12px;
+      font-weight: 700;
+      color: #6b7280;
+      line-height: 1.4;
+    }
+
+    .preview-card-clean {
+      display: grid;
+      gap: 14px;
+    }
+
+    .preview-note {
+      padding: 14px;
+      border-radius: 18px;
+      border: 1px solid #ead7ad;
+      background: linear-gradient(135deg, #fff8e8, #ffffff);
+      font-size: 12.5px;
+      font-weight: 700;
+      color: #6b7280;
+      line-height: 1.45;
+    }
+
+    .central-action-card {
+      margin-top: 18px;
+      padding: 18px;
+      border-radius: 24px;
+      border: 1px solid #ead7ad;
+      background: linear-gradient(135deg, #fffaf0, #ffffff);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+    }
+
+    .central-action-card h3 {
+      margin: 0 0 4px;
+      color: #1f2937;
+    }
+
+    .central-action-card p {
+      margin: 0;
+      font-size: 12.8px;
+      font-weight: 700;
+      color: #6b7280;
+      line-height: 1.4;
+    }
+
+    .central-action-buttons {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    @media (max-width: 980px) {
+      .dashboard-grid,
+      .compact-stats {
+        grid-template-columns: 1fr;
+      }
+
+      .central-action-card {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .central-action-buttons {
+        width: 100%;
+        justify-content: flex-start;
+      }
+    }
+  </style>
+</head>
+
+<body>
+<header class="top-header">
+  <div class="brand brand-wrap">
+    <span class="logo">
+      <img src="suraya_logo.png" alt="Suraya Seafood logo">
+    </span>
+
+    <div class="brand-text">
+      <h1>SURAYA SEAFOOD</h1>
+      <p>DineSense Admin Dashboard</p>
+    </div>
+
+    <nav class="top-nav">
+      <a class="nav-link active" href="dashboard.html">Dashboard</a>
+      <a class="nav-link" href="admin-reservations.html">Reservations</a>
+      <a class="nav-link" href="admin-tables.html">Tables</a>
+      <a class="nav-link" href="admin-closures.html">Closed Dates</a>
+    </nav>
+  </div>
+
+  <div class="header-actions">
+    <span class="status-pill open" id="openStatus">● Connecting Firebase</span>
+    <button class="btn danger" id="logoutBtn" type="button">Logout</button>
+  </div>
+</header>
+
+<main class="container">
+  <section class="card hero">
+    <div class="hero-left">
+      <h2>Restaurant Overview</h2>
+      <p class="muted">Live Firebase dashboard for reservations, table status and restaurant availability.</p>
+      <div class="meta-row">
+        <span class="meta-badge">⭐ 4.2 Rating</span>
+        <span class="meta-badge" id="firebaseBadge">🟢 Firebase Live</span>
+        <span class="meta-badge">📍 Suraya Seafood</span>
+      </div>
+    </div>
+
+    <div class="hero-right">
+      <div class="hero-cta">
+        <p class="muted small">Restaurant Availability</p>
+        <h3 id="restaurantStateText" style="margin: 4px 0 8px;">Loading...</h3>
+        <p class="muted small" id="operatingHoursText">11:00 AM – 5:00 AM</p>
+        <button class="btn outline" type="button" id="toggleOpenBtn">
+          Toggle Open / Close
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <section class="card">
+    <div class="card-head">
+      <h3>Live Restaurant Status</h3>
+      <span class="muted small" id="lastUpdatedLabel">Waiting for Firebase...</span>
+    </div>
+
+    <div class="status-grid">
+      <div class="status-box">
+        <span class="label">Occupancy</span>
+        <span class="value" id="occupancyValue">0%</span>
+      </div>
+
+      <div class="status-box">
+        <span class="label">Estimated Wait Time</span>
+        <span class="value" id="waitTimeValue">0 minutes</span>
+      </div>
+
+      <div class="status-box">
+        <span class="label">Active Tables</span>
+        <span class="value" id="activeTablesValue">0 / 0</span>
+      </div>
+
+      <div class="status-box">
+        <span class="label">Pending Reservations</span>
+        <span class="value danger-text" id="pendingReservationsValue">0</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="dashboard-grid">
+    <section class="card clean-insight-card">
+      <div class="insight-header">
+        <div>
+          <h3>Reservation Insights</h3>
+          <p class="muted small">Simple overview generated from live booking and table data.</p>
+        </div>
+        <span class="insight-badge">Live Summary</span>
+      </div>
+
+      <div class="insight-summary">
+        <strong id="insightHeadline">Loading restaurant flow...</strong>
+        <span id="insightSummary">
+          Waiting for Firebase data to generate today’s reservation summary.
+        </span>
+      </div>
+
+      <div class="compact-stats">
+        <div class="compact-stat">
+          <span class="label">Confirmed Today</span>
+          <span class="value" id="confirmedTodayValue">0</span>
+          <span class="note">Active confirmed bookings</span>
+        </div>
+
+        <div class="compact-stat">
+          <span class="label">Cancelled Today</span>
+          <span class="value" id="cancelledTodayValue">0</span>
+          <span class="note">Customer cancelled bookings</span>
+        </div>
+
+        <div class="compact-stat">
+          <span class="label">Available Tables</span>
+          <span class="value" id="availableCount">0</span>
+          <span class="note">Ready for new customers</span>
+        </div>
+
+        <div class="compact-stat">
+          <span class="label">Conflict Risk</span>
+          <span class="value danger-text" id="conflictCount">0</span>
+          <span class="note">Same table and time overlap</span>
+        </div>
+      </div>
+
+      <div class="suggestion-list">
+        <div class="suggestion-item">
+          <div class="icon">⏱️</div>
+          <div>
+            <strong>Peak Time</strong>
+            <span id="peakTimeText">No peak time detected yet.</span>
+          </div>
+        </div>
+
+        <div class="suggestion-item">
+          <div class="icon">🪑</div>
+          <div>
+            <strong>Seat Allocation</strong>
+            <span id="seatSuggestion">Waiting for live table data.</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="card-head">
+        <h3>Reservation Preview</h3>
+        <span class="muted small">Selected booking details</span>
+      </div>
+
+      <div class="preview-card-clean">
+        <div class="field">
+          <label class="field-label" for="previewSelect">Select Reservation</label>
+          <select class="select" id="previewSelect"></select>
+        </div>
+
+        <div class="preview-summary">
+          <div class="ps-item">
+            <span class="ps-label">Customer</span>
+            <span class="ps-value" id="pvCustomer">-</span>
+          </div>
+
+          <div class="ps-item">
+            <span class="ps-label">Pax</span>
+            <span class="ps-value" id="pvPax">-</span>
+          </div>
+
+          <div class="ps-item">
+            <span class="ps-label">Time</span>
+            <span class="ps-value" id="pvTime">-</span>
+          </div>
+
+          <div class="ps-item">
+            <span class="ps-label">Assigned Table</span>
+            <span class="ps-value">
+              <span class="chip" id="pvTable">-</span>
+            </span>
+          </div>
+        </div>
+
+        <div class="preview-note">
+          This preview shows the selected reservation only. Use the action panel below to manage all reservations or open the full seat map.
+        </div>
+      </div>
+    </section>
+  </section>
+
+  <section class="central-action-card">
+    <div>
+      <h3>Quick Management</h3>
+      <p>Access the main reservation list or open the full restaurant seat map from one place.</p>
+    </div>
+
+    <div class="central-action-buttons">
+      <a class="btn primary" href="admin-reservations.html">Review Reservations</a>
+      <a class="btn outline" href="admin-tables.html">View Full Seat Map</a>
+    </div>
+  </section>
+
+  <section class="card">
+    <div class="card-head table-head">
+      <div>
+        <h3>Today’s Reservations</h3>
+        <p class="muted small">Live bookings from Firebase</p>
+      </div>
+
+      <div class="table-actions">
+        <input class="search" id="reservationSearch" placeholder="Search name / table / status..." />
+      </div>
+    </div>
+
+    <div class="table-wrap">
+      <table class="table">
+        <thead>
+        <tr>
+          <th>ID</th>
+          <th>Time</th>
+          <th>Customer</th>
+          <th>Pax</th>
+          <th>Source</th>
+          <th>Table</th>
+          <th>Status</th>
+        </tr>
+        </thead>
+        <tbody id="dashboardReservationRows"></tbody>
+      </table>
+    </div>
+  </section>
+</main>
+
+<div class="toast hidden" id="toast">Updated successfully</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+
+  import {
+    getFirestore,
+    collection,
+    onSnapshot,
+    query,
+    orderBy,
+    doc,
+    setDoc,
+    getDoc,
+    serverTimestamp
+  } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyCaNALWumkAiZp35XAQhA7IBovtKy8vO84",
+    authDomain: "surayadinesense.firebaseapp.com",
+    projectId: "surayadinesense",
+    storageBucket: "surayadinesense.firebasestorage.app",
+    messagingSenderId: "283332205556",
+    appId: "1:283332205556:web:80e4c14db620e0258737a1"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  const RESTAURANT_STATUS_COLLECTION = "restaurant_status";
+  const RESTAURANT_STATUS_DOC = "suraya";
+  const DEFAULT_HOURS = "11:00 AM – 5:00 AM";
+  const DEFAULT_NOTE = "Operating hours may change depending on restaurant conditions or public holidays.";
+
+  const openStatus = document.getElementById("openStatus");
+  const firebaseBadge = document.getElementById("firebaseBadge");
+  const restaurantStateText = document.getElementById("restaurantStateText");
+  const operatingHoursText = document.getElementById("operatingHoursText");
+  const lastUpdatedLabel = document.getElementById("lastUpdatedLabel");
+
+  const occupancyValue = document.getElementById("occupancyValue");
+  const waitTimeValue = document.getElementById("waitTimeValue");
+  const activeTablesValue = document.getElementById("activeTablesValue");
+  const pendingReservationsValue = document.getElementById("pendingReservationsValue");
+
+  const confirmedTodayValue = document.getElementById("confirmedTodayValue");
+  const cancelledTodayValue = document.getElementById("cancelledTodayValue");
+  const availableCount = document.getElementById("availableCount");
+  const conflictCount = document.getElementById("conflictCount");
+  const insightHeadline = document.getElementById("insightHeadline");
+  const insightSummary = document.getElementById("insightSummary");
+  const peakTimeText = document.getElementById("peakTimeText");
+  const seatSuggestion = document.getElementById("seatSuggestion");
+
+  const previewSelect = document.getElementById("previewSelect");
+  const pvCustomer = document.getElementById("pvCustomer");
+  const pvPax = document.getElementById("pvPax");
+  const pvTime = document.getElementById("pvTime");
+  const pvTable = document.getElementById("pvTable");
+  const reservationRows = document.getElementById("dashboardReservationRows");
+  const reservationSearch = document.getElementById("reservationSearch");
+  const toggleOpenBtn = document.getElementById("toggleOpenBtn");
+  const toast = document.getElementById("toast");
+
+  let bookings = [];
+  let tables = {};
+  let isOpen = true;
+  let operatingHours = DEFAULT_HOURS;
+
+  function safe(value) {
+    return value === undefined || value === null || value === "" ? "-" : String(value);
+  }
+
+  function shortId(id) {
+    return id.length > 8 ? id.substring(0, 8) : id;
+  }
+
+  function normalizeStatus(status) {
+    const s = String(status || "available").toLowerCase();
+
+    if (s === "empty") return "available";
+    if (s === "available") return "available";
+    if (s === "reserved") return "booked";
+    if (s === "booked") return "booked";
+    if (s === "occupied") return "occupied";
+    if (s === "arrived") return "arrived";
+    if (s === "cancelled" || s === "canceled") return "cancelled";
+    if (s === "pending") return "pending";
+    if (s === "completed") return "completed";
+    if (s === "confirmed") return "confirmed";
+
+    return "confirmed";
+  }
+
+  function statusLabel(status) {
+    const s = normalizeStatus(status);
+    return s.charAt(0).toUpperCase() + s.slice(1);
+  }
+
+  function getTable(data) {
+    return safe(data.tableLabel || data.table);
+  }
+
+  function getCustomer(data) {
+    return safe(data.customerName || data.name);
+  }
+
+  function getTime(data) {
+    return safe(data.timeText || data.time || data.bookingTime);
+  }
+
+  function getDate(data) {
+    if (data.date && typeof data.date.toDate === "function") {
+      return data.date.toDate().toLocaleDateString();
+    }
+
+    if (data.bookingDate && typeof data.bookingDate.toDate === "function") {
+      return data.bookingDate.toDate().toLocaleDateString();
+    }
+
+    return safe(data.dateText || data.date || data.bookingDate);
+  }
+
+  function isTodayBooking(data) {
+    const now = new Date();
+    let d = null;
+
+    if (data.date && typeof data.date.toDate === "function") {
+      d = data.date.toDate();
+    } else if (data.createdAt && typeof data.createdAt.toDate === "function") {
+      d = data.createdAt.toDate();
+    }
+
+    if (!d) return true;
+
+    return d.getFullYear() === now.getFullYear() &&
+      d.getMonth() === now.getMonth() &&
+      d.getDate() === now.getDate();
+  }
+
+  function showToast(message) {
+    toast.textContent = message;
+    toast.classList.remove("hidden");
+
+    setTimeout(() => {
+      toast.classList.add("hidden");
+    }, 1800);
+  }
+
+  function updateRestaurantStatusUI() {
+    openStatus.textContent = isOpen ? "● Open" : "● Closed";
+    openStatus.classList.toggle("open", isOpen);
+
+    restaurantStateText.textContent = isOpen ? "Open now" : "Closed";
+    restaurantStateText.style.color = isOpen ? "#15803d" : "#b91c1c";
+
+    operatingHoursText.textContent = operatingHours || DEFAULT_HOURS;
+
+    if (firebaseBadge) {
+      firebaseBadge.textContent = "🟢 Firebase Live";
+    }
+  }
+
+  async function seedRestaurantStatusIfNeeded() {
+    const ref = doc(db, RESTAURANT_STATUS_COLLECTION, RESTAURANT_STATUS_DOC);
+    const snap = await getDoc(ref);
+
+    if (snap.exists()) return;
+
+    await setDoc(ref, {
+      isOpen: true,
+      operatingHours: DEFAULT_HOURS,
+      note: DEFAULT_NOTE,
+      updatedAt: serverTimestamp(),
+    });
+  }
+
+  async function toggleRestaurantStatus() {
+    const nextOpen = !isOpen;
+    toggleOpenBtn.disabled = true;
+
+    try {
+      await setDoc(
+        doc(db, RESTAURANT_STATUS_COLLECTION, RESTAURANT_STATUS_DOC),
+        {
+          isOpen: nextOpen,
+          operatingHours: DEFAULT_HOURS,
+          note: DEFAULT_NOTE,
+          updatedAt: serverTimestamp(),
+        },
+        { merge: true }
+      );
+
+      showToast(nextOpen ? "Restaurant marked as open" : "Restaurant marked as closed");
+    } catch (error) {
+      console.error("Failed to update restaurant status:", error);
+      showToast("Failed to update restaurant status.");
+    } finally {
+      toggleOpenBtn.disabled = false;
+    }
+  }
+
+  function activeBookedTablesSet() {
+    const set = new Set();
+
+    bookings.forEach((booking) => {
+      const status = normalizeStatus(booking.status);
+
+      if (status === "cancelled" || status === "completed") return;
+
+      const table = getTable(booking);
+      if (table !== "-") set.add(table);
+    });
+
+    return set;
+  }
+
+  function countConflicts(list) {
+    const map = {};
+
+    list.forEach((b) => {
+      const status = normalizeStatus(b.status);
+      if (status === "cancelled" || status === "completed") return;
+
+      const key = `${getTable(b)}-${getTime(b)}`;
+      map[key] = (map[key] || 0) + 1;
+    });
+
+    return Object.values(map).filter((count) => count > 1).length;
+  }
+
+  function findPeakTime(list) {
+    const timeMap = {};
+
+    list.forEach((b) => {
+      const status = normalizeStatus(b.status);
+      if (status === "cancelled" || status === "completed") return;
+
+      const time = getTime(b);
+      if (time === "-") return;
+
+      timeMap[time] = (timeMap[time] || 0) + 1;
+    });
+
+    const sorted = Object.entries(timeMap).sort((a, b) => b[1] - a[1]);
+
+    if (sorted.length === 0) {
+      return { time: "-", count: 0 };
+    }
+
+    return { time: sorted[0][0], count: sorted[0][1] };
+  }
+
+  function renderStats() {
+    const tableList = Object.values(tables);
+    const totalTables = tableList.length;
+    const bookedFromBookings = activeBookedTablesSet();
+
+    const activeTables = tableList.filter((t) => {
+      const s = normalizeStatus(t.status);
+      const id = t.id || t.label;
+
+      return s === "occupied" || s === "booked" || bookedFromBookings.has(id);
+    }).length;
+
+    const availableTables = tableList.filter((t) => {
+      const status = normalizeStatus(t.status);
+      const id = t.id || t.label;
+
+      return status === "available" && !bookedFromBookings.has(id);
+    }).length;
+
+    const occupancy = totalTables === 0
+      ? 0
+      : Math.round((activeTables / totalTables) * 100);
+
+    const todayBookings = bookings.filter(isTodayBooking);
+
+    const pendingCount = todayBookings.filter((b) => {
+      const s = normalizeStatus(b.status);
+      return s === "pending" || s === "confirmed";
+    }).length;
+
+    const confirmedToday = todayBookings.filter((b) => {
+      return normalizeStatus(b.status) === "confirmed";
+    }).length;
+
+    const cancelledToday = todayBookings.filter((b) => {
+      return normalizeStatus(b.status) === "cancelled";
+    }).length;
+
+    const conflicts = countConflicts(todayBookings);
+    const peak = findPeakTime(todayBookings);
+
+    const waitTime = activeTables === 0
+      ? 0
+      : Math.min(60, Math.ceil((activeTables / Math.max(totalTables, 1)) * 45));
+
+    occupancyValue.textContent = `${occupancy}%`;
+    waitTimeValue.textContent = `${waitTime} minutes`;
+    activeTablesValue.textContent = `${activeTables} / ${totalTables}`;
+    pendingReservationsValue.textContent = pendingCount;
+
+    confirmedTodayValue.textContent = confirmedToday;
+    cancelledTodayValue.textContent = cancelledToday;
+    availableCount.textContent = availableTables;
+    conflictCount.textContent = conflicts;
+
+    if (occupancy >= 75) {
+      insightHeadline.textContent = "High restaurant occupancy detected";
+      insightSummary.textContent = "Table availability is getting limited. Staff should monitor seating flow and reservation timing closely.";
+    } else if (pendingCount >= 5) {
+      insightHeadline.textContent = "Reservation activity is increasing";
+      insightSummary.textContent = "Several bookings are active today. Review reservations early to avoid table assignment conflicts.";
+    } else if (conflicts > 0) {
+      insightHeadline.textContent = "Potential reservation conflict detected";
+      insightSummary.textContent = "There may be overlapping reservations for the same table and time. Please review the reservation list.";
+    } else {
+      insightHeadline.textContent = "Restaurant flow is stable";
+      insightSummary.textContent = "No major reservation conflict detected. Table availability is currently manageable.";
+    }
+
+    peakTimeText.textContent = peak.count === 0
+      ? "No peak time detected yet."
+      : `${peak.time} has the highest booking activity today with ${peak.count} reservation(s).`;
+
+    seatSuggestion.textContent = availableTables === 0
+      ? "No available table detected. New customers may need to wait or choose another time."
+      : `${availableTables} table(s) are currently available for new customers.`;
+
+    lastUpdatedLabel.textContent = `Last updated: ${new Date().toLocaleTimeString()}`;
+  }
+
+  function renderReservationsTable() {
+    const search = reservationSearch.value.trim().toLowerCase();
+    const today = bookings.filter(isTodayBooking);
+
+    const filtered = today.filter((b) => {
+      const blob = [
+        b.id,
+        getCustomer(b),
+        getTable(b),
+        getTime(b),
+        b.status,
+        b.source,
+      ].join(" ").toLowerCase();
+
+      return blob.includes(search);
+    });
+
+    if (filtered.length === 0) {
+      reservationRows.innerHTML = `
+        <tr>
+          <td colspan="7" style="text-align:center; padding:18px;">
+            No reservations found.
+          </td>
+        </tr>
+      `;
+      return;
+    }
+
+    reservationRows.innerHTML = filtered.map((b) => {
+      return `
+        <tr>
+          <td title="${b.id}">${shortId(b.id)}</td>
+          <td>${getDate(b)} ${getTime(b)}</td>
+          <td>${getCustomer(b)}</td>
+          <td>${safe(b.pax)}</td>
+          <td>${safe(b.source || "Customer App")}</td>
+          <td>${getTable(b)}</td>
+          <td>
+            <span class="status-pill ${normalizeStatus(b.status) === "cancelled" ? "" : "open"}">
+              ${statusLabel(b.status)}
+            </span>
+          </td>
+        </tr>
+      `;
+    }).join("");
+  }
+
+  function renderPreviewOptions() {
+    const currentValue = previewSelect.value;
+
+    const activeBookings = bookings.filter((b) => {
+      const s = normalizeStatus(b.status);
+      return s !== "cancelled" && s !== "completed";
+    });
+
+    if (activeBookings.length === 0) {
+      previewSelect.innerHTML = `<option value="">No active reservations</option>`;
+      renderPreview();
+      return;
+    }
+
+    previewSelect.innerHTML = activeBookings.map((b) => {
+      return `
+        <option value="${b.id}">
+          ${getCustomer(b)} • ${getTable(b)} • ${getTime(b)}
+        </option>
+      `;
+    }).join("");
+
+    if (currentValue && activeBookings.some((b) => b.id === currentValue)) {
+      previewSelect.value = currentValue;
+    }
+
+    if (!previewSelect.value && activeBookings[0]) {
+      previewSelect.value = activeBookings[0].id;
+    }
+
+    renderPreview();
+  }
+
+  function renderPreview() {
+    const selected = bookings.find((b) => b.id === previewSelect.value);
+
+    if (!selected) {
+      pvCustomer.textContent = "-";
+      pvPax.textContent = "-";
+      pvTime.textContent = "-";
+      pvTable.textContent = "-";
+      return;
+    }
+
+    pvCustomer.textContent = getCustomer(selected);
+    pvPax.textContent = safe(selected.pax);
+    pvTime.textContent = `${getDate(selected)} ${getTime(selected)}`;
+    pvTable.textContent = getTable(selected);
+  }
+
+  function renderAll() {
+    renderStats();
+    renderReservationsTable();
+    renderPreviewOptions();
+  }
+
+  reservationSearch.addEventListener("input", renderReservationsTable);
+  previewSelect.addEventListener("change", renderPreview);
+  toggleOpenBtn.addEventListener("click", toggleRestaurantStatus);
+
+  document.getElementById("logoutBtn").addEventListener("click", () => {
+    window.location.href = "index.html";
+  });
+
+  await seedRestaurantStatusIfNeeded();
+
+  onSnapshot(
+    doc(db, RESTAURANT_STATUS_COLLECTION, RESTAURANT_STATUS_DOC),
+    (snapshot) => {
+      const data = snapshot.data() || {};
+
+      isOpen = data.isOpen === true;
+      operatingHours = data.operatingHours || DEFAULT_HOURS;
+
+      updateRestaurantStatusUI();
+    },
+    (error) => {
+      console.error("Restaurant status listener error:", error);
+      openStatus.textContent = "● Status Error";
+      openStatus.classList.remove("open");
+
+      if (firebaseBadge) {
+        firebaseBadge.textContent = "🔴 Firebase Error";
+      }
+    }
+  );
+
+  onSnapshot(
+    collection(db, "tables"),
+    (snapshot) => {
+      tables = {};
+
+      snapshot.forEach((docSnap) => {
+        tables[docSnap.id] = {
+          id: docSnap.id,
+          ...docSnap.data(),
+        };
+      });
+
+      renderAll();
+      updateRestaurantStatusUI();
+    },
+    (error) => {
+      console.error("Tables listener error:", error);
+      openStatus.textContent = "● Firebase Error";
+      openStatus.classList.remove("open");
+
+      if (firebaseBadge) {
+        firebaseBadge.textContent = "🔴 Firebase Error";
+      }
+    }
+  );
+
+  onSnapshot(
+    query(collection(db, "bookings"), orderBy("createdAt", "desc")),
+    (snapshot) => {
+      bookings = snapshot.docs.map((docSnap) => ({
+        id: docSnap.id,
+        ...docSnap.data(),
+      }));
+
+      renderAll();
+      updateRestaurantStatusUI();
+    },
+    (error) => {
+      console.error("Bookings listener error:", error);
+
+      reservationRows.innerHTML = `
+        <tr>
+          <td colspan="7" style="text-align:center; padding:18px; color:#b91c1c;">
+            Firebase Error. Check Firestore rules or index.
+          </td>
+        </tr>
+      `;
+
+      openStatus.textContent = "● Firebase Error";
+      openStatus.classList.remove("open");
+
+      if (firebaseBadge) {
+        firebaseBadge.textContent = "🔴 Firebase Error";
+      }
+    }
+  );
+</script>
+</body>
+</html>

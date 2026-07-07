@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>DineSense Admin | QR Scanner</title>
+
+  <link rel="stylesheet" href="dash.css">
+
+  <style>
+    .scanner-card {
+      max-width: 820px;
+      margin: 30px auto;
+      background: #fff;
+      border-radius: 22px;
+      padding: 22px;
+      border: 1px solid #eadfca;
+      box-shadow: 0 12px 30px rgba(0, 0, 0, .08);
+    }
+
+    .scanner-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 14px;
+      margin-bottom: 14px;
+    }
+
+    .scanner-head h3 {
+      margin: 0 0 6px;
+    }
+
+    .scanner-chip {
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: #fff2d8;
+      border: 1px solid #ead7ad;
+      font-size: 12px;
+      font-weight: 900;
+      color: #8a640d;
+      white-space: nowrap;
+    }
+
+    #reader {
+      width: 100%;
+      max-width: 440px;
+      margin: 18px auto;
+      border-radius: 18px;
+      overflow: hidden;
+      border: 2px solid #eadfca;
+      background: #fffaf0;
+      min-height: 280px;
+    }
+
+    .result-box {
+      margin-top: 18px;
+      padding: 16px;
+      border-radius: 18px;
+      border: 1px solid #eadfca;
+      background: #fffaf0;
+    }
+
+    .result-box h3 {
+      margin: 0 0 10px;
+    }
+
+    .valid {
+      border-color: #16a34a;
+      background: #f0fdf4;
+    }
+
+    .invalid {
+      border-color: #ef4444;
+      background: #fef2f2;
+    }
+
+    .warning {
+      border-color: #f59e0b;
+      background: #fffbeb;
+    }
+
+    .row {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 8px 0;
+      border-bottom: 1px dashed #e5dccb;
+      font-size: 14px;
+    }
+
+    .row:last-child {
+      border-bottom: none;
+    }
+
+    .label {
+      color: #6b7280;
+      font-weight: 800;
+    }
+
+    .value {
+      font-weight: 900;
+      color: #111827;
+      text-align: right;
+      word-break: break-word;
+    }
+
+    .btn-row {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: 14px;
+    }
+
+    .btn {
+      border: none;
+      padding: 12px 16px;
+      border-radius: 13px;
+      font-weight: 900;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+    }
+
+    .btn:disabled {
+      opacity: .55;
+      cursor: not-allowed;
+    }
+
+    .btn-gold {
+      background: #b08a3a;
+      color: #fff;
+    }
+
+    .btn-light {
+      background: #fff;
+      border: 1px solid #eadfca;
+      color: #111827;
+    }
+
+    .btn-danger {
+      background: #ef4444;
+      color: #fff;
+    }
+
+    .status-small {
+      font-size: 12px;
+      font-weight: 800;
+      color: #6b7280;
+      margin-top: 8px;
+    }
+
+    @media (max-width: 760px) {
+      .scanner-head {
+        flex-direction: column;
+      }
+
+      .scanner-chip {
+        white-space: normal;
+      }
+    }
+
+    @media (max-width: 760px) {
+  .top-nav {
+    display: none !important;
+  }
+
+  .header-actions {
+    display: none !important;
+  }
+
+  .top-header {
+    padding: 18px 16px !important;
+  }
+
+  .brand-wrap {
+    width: 100%;
+  }
+
+  .brand-text h1 {
+    font-size: 20px;
+  }
+
+  .brand-text p {
+    font-size: 13px;
+  }
+
+  .scanner-card {
+    margin: 18px 12px;
+    padding: 18px;
+  }
+
+  .scanner-chip {
+    display: none;
+  }
+}
+
+  </style>
+</head>
+
+<body>
+<header class="top-header">
+  <div class="brand brand-wrap">
+    <span class="logo">
+      <img src="suraya_logo.png" alt="Suraya Seafood Logo">
+    </span>
+
+    <div class="brand-text">
+      <h1>SURAYA SEAFOOD</h1>
+      <p>QR Booking Verification</p>
+    </div>
+
+  <div class="header-actions">
+    <span class="status-pill open" id="firebaseStatus">● Scanner Ready</span>
+  </div>
+</header>
+
+<main class="container">
+  <section class="scanner-card">
+    <div class="scanner-head">
+      <div>
+        <h3>Scan Customer QR Code</h3>
+        <p class="muted small">
+          Verify customer booking QR code using Firestore booking records.
+        </p>
+      </div>
+      <span class="scanner-chip">Camera verification</span>
+    </div>
+
+    <div id="reader"></div>
+
+    <div class="btn-row">
+      <button class="btn btn-gold" id="startBtn" type="button">Start Scanner</button>
+      <button class="btn btn-light" id="stopBtn" type="button">Stop Scanner</button>
+      <button class="btn btn-light" id="resetBtn" type="button">Reset Result</button>
+    </div>
+
+<div id="resultBox" class="result-box">
+  <h3>Ready to Scan</h3>
+  <p class="muted small">Scan the customer QR code to verify the booking.</p>
+</div>
+
+  </section>
+</main>
+
+<script src="https://unpkg.com/html5-qrcode"></script>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+
+  import {
+    getFirestore,
+    doc,
+    getDoc,
+    updateDoc,
+    serverTimestamp
+  } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyCaNALWumkAiZp35XAQhA7IBovtKy8vO84",
+    authDomain: "surayadinesense.firebaseapp.com",
+    projectId: "surayadinesense",
+    storageBucket: "surayadinesense.firebasestorage.app",
+    messagingSenderId: "283332205556",
+    appId: "1:283332205556:web:80e4c14db620e0258737a1"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  const resultBox = document.getElementById("resultBox");
+  const firebaseStatus = document.getElementById("firebaseStatus");
+  const startBtn = document.getElementById("startBtn");
+  const stopBtn = document.getElementById("stopBtn");
+  const resetBtn = document.getElementById("resetBtn");
+
+  let scanner = null;
+  let scanning = false;
+  let processingScan = false;
+  let lastScannedBookingId = null;
+
+  function safeText(value) {
+    return value === undefined || value === null || value === "" ? "-" : String(value);
+  }
+
+  function escapeHtml(value) {
+    return String(value ?? "")
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;")
+      .replaceAll("'", "&#039;");
+  }
+
+  function showBox(type, html) {
+    resultBox.className = "result-box " + type;
+    resultBox.innerHTML = html;
+  }
+
+  function setStatus(text, isOpen = true) {
+    firebaseStatus.textContent = text;
+    firebaseStatus.classList.toggle("open", isOpen);
+  }
+
+  function parseQrText(text) {
+    const raw = String(text || "").trim();
+
+    if (!raw) {
+      return { bookingId: "" };
+    }
+
+    // Format 1: JSON QR
+    // {"bookingId":"abc123","table":"T01"}
+    try {
+      const parsed = JSON.parse(raw);
+
+      if (parsed && typeof parsed === "object") {
+        return {
+          bookingId: String(
+            parsed.bookingId ||
+            parsed.bookingID ||
+            parsed.id ||
+            parsed.booking_id ||
+            ""
+          ).trim(),
+          table: parsed.tableLabel || parsed.table || "",
+          name: parsed.customerName || parsed.name || "",
+          phone: parsed.phone || "",
+          pax: parsed.pax || "",
+          time: parsed.timeText || parsed.time || "",
+          status: parsed.status || ""
+        };
+      }
+    } catch (e) {
+      // Not JSON, continue fallback parsing
+    }
+
+    // Format 2: URL QR
+    // https://.../verify?bookingId=abc123
+    try {
+      const url = new URL(raw);
+
+      const bookingId =
+        url.searchParams.get("bookingId") ||
+        url.searchParams.get("bookingID") ||
+        url.searchParams.get("id") ||
+        url.searchParams.get("booking_id");
+
+      if (bookingId) {
+        return { bookingId: bookingId.trim() };
+      }
+    } catch (e) {
+      // Not URL
+    }
+
+    // Format 3: text with label
+    // bookingId: abc123
+    const match = raw.match(/(?:bookingId|bookingID|booking_id|id)\s*[:=]\s*([A-Za-z0-9_\-]+)/i);
+
+    if (match && match[1]) {
+      return { bookingId: match[1].trim() };
+    }
+
+    // Format 4: direct Firestore document ID
+    return {
+      bookingId: raw,
+    };
+  }
+
+  function getBookingDetails(booking, qrData) {
+    return {
+      table: booking.tableLabel || booking.table || qrData.table || "-",
+      name: booking.customerName || booking.name || qrData.name || "-",
+      phone: booking.phone || qrData.phone || "-",
+      pax: booking.pax || qrData.pax || "-",
+      time: booking.timeText || booking.time || booking.bookingTime || qrData.time || "-",
+      date: booking.dateText || booking.bookingDateText || booking.date || "-",
+      status: booking.status || qrData.status || "confirmed"
+    };
+  }
+
+  async function markCustomerArrived(bookingId, bookingRef, table) {
+    try {
+      await updateDoc(bookingRef, {
+        status: "arrived",
+        checkedInAt: serverTimestamp(),
+        updatedAt: serverTimestamp()
+      });
+
+      if (table && table !== "-") {
+        await updateDoc(doc(db, "tables", table), {
+          status: "occupied",
+          updatedAt: serverTimestamp()
+        });
+      }
+
+      showBox("valid", `
+        <h3>Customer Marked Arrived ✅</h3>
+        <p>Booking <strong>${escapeHtml(bookingId)}</strong> has been checked in.</p>
+        <p>Table <strong>${escapeHtml(table)}</strong> is now occupied.</p>
+        <div class="btn-row">
+          <button class="btn btn-gold" id="scanNextBtn" type="button">Scan Next QR</button>
+        </div>
+      `);
+
+      setStatus("● Customer Arrived", true);
+
+      document.getElementById("scanNextBtn").addEventListener("click", async () => {
+        resetResult();
+        await startScanner();
+      });
+    } catch (error) {
+      console.error(error);
+
+      showBox("invalid", `
+        <h3>Update Failed ❌</h3>
+        <p>${escapeHtml(error.message || error)}</p>
+        <p>Please check Firestore rules for bookings and tables.</p>
+      `);
+
+      setStatus("● Update Failed", false);
+    }
+  }
+
+  async function verifyBookingFromFirestore(qrText) {
+    const qrData = parseQrText(qrText);
+    const bookingId = qrData.bookingId;
+
+    if (!bookingId) {
+      showBox("invalid", `
+        <h3>Invalid QR ❌</h3>
+        <p>This QR code does not contain a booking ID.</p>
+      `);
+      setStatus("● Invalid QR", false);
+      return;
+    }
+
+    setStatus("● Checking Booking", true);
+
+    try {
+      const bookingRef = doc(db, "bookings", bookingId);
+      const bookingSnap = await getDoc(bookingRef);
+
+      if (!bookingSnap.exists()) {
+        showBox("invalid", `
+          <h3>Booking Not Found ❌</h3>
+          <p>Booking ID <strong>${escapeHtml(bookingId)}</strong> does not exist in Firestore.</p>
+          <p class="status-small">Scanned text: ${escapeHtml(qrText)}</p>
+          <div class="btn-row">
+            <button class="btn btn-gold" id="scanAgainBtn" type="button">Scan Again</button>
+          </div>
+        `);
+
+        setStatus("● Booking Not Found", false);
+
+        document.getElementById("scanAgainBtn").addEventListener("click", async () => {
+          resetResult();
+          await startScanner();
+        });
+
+        return;
+      }
+
+      const booking = bookingSnap.data();
+      const details = getBookingDetails(booking, qrData);
+
+      lastScannedBookingId = bookingId;
+
+      const normalizedStatus = String(details.status || "").toLowerCase();
+
+      const arrivedWarning = normalizedStatus === "arrived"
+        ? `<p class="status-small"><strong>Note:</strong> This booking has already been marked as arrived.</p>`
+        : "";
+
+      const cancelledWarning = normalizedStatus === "cancelled" || normalizedStatus === "canceled"
+        ? `<p class="status-small"><strong>Warning:</strong> This booking is cancelled. Do not check in unless confirmed by staff.</p>`
+        : "";
+
+      showBox(
+        normalizedStatus === "cancelled" || normalizedStatus === "canceled" ? "warning" : "valid",
+        `
+        <h3>Booking Verified ✅</h3>
+
+        <div class="row">
+          <span class="label">Booking ID</span>
+          <span class="value">${escapeHtml(bookingId)}</span>
+        </div>
+
+        <div class="row">
+          <span class="label">Customer</span>
+          <span class="value">${escapeHtml(safeText(details.name))}</span>
+        </div>
+
+        <div class="row">
+          <span class="label">Phone</span>
+          <span class="value">${escapeHtml(safeText(details.phone))}</span>
+        </div>
+
+        <div class="row">
+          <span class="label">Table</span>
+          <span class="value">${escapeHtml(safeText(details.table))}</span>
+        </div>
+
+        <div class="row">
+          <span class="label">Pax</span>
+          <span class="value">${escapeHtml(safeText(details.pax))}</span>
+        </div>
+
+        <div class="row">
+          <span class="label">Date</span>
+          <span class="value">${escapeHtml(safeText(details.date))}</span>
+        </div>
+
+        <div class="row">
+          <span class="label">Time</span>
+          <span class="value">${escapeHtml(safeText(details.time))}</span>
+        </div>
+
+        <div class="row">
+          <span class="label">Status</span>
+          <span class="value">${escapeHtml(safeText(details.status))}</span>
+        </div>
+
+        ${arrivedWarning}
+        ${cancelledWarning}
+
+        <div class="btn-row">
+          <button class="btn btn-gold" id="markArrivedBtn" type="button">
+            Mark Arrived
+          </button>
+          <button class="btn btn-light" id="scanAnotherBtn" type="button">
+            Scan Another
+          </button>
+        </div>
+      `);
+
+      document.getElementById("markArrivedBtn").addEventListener("click", async () => {
+        await markCustomerArrived(bookingId, bookingRef, details.table);
+      });
+
+      document.getElementById("scanAnotherBtn").addEventListener("click", async () => {
+        resetResult();
+        await startScanner();
+      });
+
+      setStatus("● Booking Verified", true);
+    } catch (error) {
+      console.error(error);
+
+      showBox("invalid", `
+        <h3>Firestore Error ❌</h3>
+        <p>${escapeHtml(error.message || error)}</p>
+        <p>Please check Firestore rules and internet connection.</p>
+      `);
+
+      setStatus("● Firestore Error", false);
+    }
+  }
+
+  async function startScanner() {
+    if (scanning || processingScan) return;
+
+    if (!window.Html5Qrcode) {
+      showBox("invalid", `
+        <h3>Scanner Library Error ❌</h3>
+        <p>html5-qrcode library failed to load. Please check your internet connection.</p>
+      `);
+      setStatus("● Library Error", false);
+      return;
+    }
+
+    scanner = new Html5Qrcode("reader");
+    scanning = true;
+    processingScan = false;
+    startBtn.disabled = true;
+    stopBtn.disabled = false;
+
+    setStatus("● Camera Active", true);
+
+    try {
+      await scanner.start(
+        { facingMode: "environment" },
+        {
+          fps: 10,
+          qrbox: {
+            width: 250,
+            height: 250
+          }
+        },
+        async (decodedText) => {
+          if (!decodedText || processingScan) return;
+
+          processingScan = true;
+
+          const qrData = parseQrText(decodedText);
+
+          if (qrData.bookingId && qrData.bookingId === lastScannedBookingId) {
+            processingScan = false;
+            return;
+          }
+
+          await stopScanner(false);
+          await verifyBookingFromFirestore(decodedText);
+          processingScan = false;
+        },
+        () => {}
+      );
+    } catch (error) {
+      scanning = false;
+      processingScan = false;
+      startBtn.disabled = false;
+      stopBtn.disabled = false;
+
+      showBox("invalid", `
+        <h3>Camera Error ❌</h3>
+        <p>${escapeHtml(error.message || error)}</p>
+        <p>Please allow camera permission and run this page on localhost or HTTPS.</p>
+      `);
+
+      setStatus("● Camera Error", false);
+    }
+  }
+
+  async function stopScanner(updateStatus = true) {
+    if (!scanner || !scanning) {
+      scanning = false;
+      startBtn.disabled = false;
+      stopBtn.disabled = false;
+      return;
+    }
+
+    try {
+      await scanner.stop();
+      await scanner.clear();
+    } catch (error) {
+      console.warn("Stop scanner warning:", error);
+    }
+
+    scanner = null;
+    scanning = false;
+    startBtn.disabled = false;
+    stopBtn.disabled = false;
+
+    if (updateStatus) {
+      setStatus("● Scanner Stopped", false);
+    }
+  }
+
+  function resetResult() {
+    lastScannedBookingId = null;
+    processingScan = false;
+
+    showBox("", `
+      <h3>No QR scanned yet.</h3>
+      <p class="muted small">Point the camera at the customer booking QR code.</p>
+    `);
+
+    setStatus("● Scanner Ready", true);
+  }
+
+  startBtn.addEventListener("click", async () => {
+    await startScanner();
+  });
+
+  stopBtn.addEventListener("click", async () => {
+    await stopScanner();
+  });
+
+  resetBtn.addEventListener("click", async () => {
+    await stopScanner(false);
+    resetResult();
+  });
+
+  stopBtn.disabled = false;
+</script>
+</body>
+</html>

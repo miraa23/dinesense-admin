@@ -1,0 +1,605 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>DineSense Admin | Suraya Seafood</title>
+
+  <style>
+    :root {
+      --gold: #b08a3a;
+      --gold-2: #e7c86f;
+      --dark: #1f2937;
+      --muted: #6b7280;
+      --line: #eadfca;
+      --soft: #fffaf0;
+      --white: #ffffff;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      margin: 0;
+      min-height: 100%;
+      font-family: Inter, Arial, sans-serif;
+      color: var(--dark);
+    }
+
+    body {
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at 12% 18%, rgba(255, 255, 255, 0.48), transparent 13%),
+        radial-gradient(circle at 90% 22%, rgba(255, 255, 255, 0.42), transparent 10%),
+        radial-gradient(circle at 24% 72%, rgba(255, 255, 255, 0.30), transparent 15%),
+        radial-gradient(circle at 78% 70%, rgba(255, 255, 255, 0.32), transparent 13%),
+        linear-gradient(135deg, #fffaf0, #fff0bd);
+      overflow-x: hidden;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .page {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 32px 18px;
+    }
+
+    .start-card {
+      width: min(430px, 100%);
+      min-height: 340px;
+      padding: 32px 28px 30px;
+      border-radius: 26px;
+      background: rgba(255, 255, 255, 0.84);
+      border: 1px solid rgba(234, 223, 202, 0.95);
+      box-shadow: 0 20px 55px rgba(31, 41, 55, 0.10);
+      text-align: center;
+
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+
+    .main-logo {
+      width: 260px;
+      height: 260px;
+      object-fit: contain;
+      display: block;
+      margin: 0 auto -15px;
+    }
+
+    .brand-title {
+      margin: 0;
+      font-size: 23px;
+      line-height: 1.1;
+      letter-spacing: 3px;
+      font-weight: 1000;
+      color: var(--dark);
+    }
+
+    .tagline {
+      margin: 10px auto 22px;
+      max-width: 320px;
+      color: var(--muted);
+      font-size: 12.4px;
+      font-weight: 700;
+      line-height: 1.42;
+    }
+
+    .login-wrap {
+      width: min(450px, 100%);
+    }
+
+    .login-card {
+      width: 100%;
+      padding: 26px;
+      border-radius: 26px;
+      background: rgba(255, 255, 255, 0.88);
+      border: 1px solid var(--line);
+      box-shadow: 0 22px 60px rgba(31, 41, 55, 0.13);
+    }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      gap: 13px;
+      margin-bottom: 22px;
+      padding: 11px;
+      border-radius: 18px;
+      background: rgba(255, 250, 240, 0.90);
+      border: 1px solid rgba(234, 223, 202, 0.9);
+    }
+
+    .logo-small {
+      width: 80px;
+      height: 80px;
+      object-fit: contain;
+      display: block;
+      flex: 0 0 auto;
+    }
+
+    .header-brand {
+      font-size: 13.5px;
+      letter-spacing: 1.1px;
+      color: var(--gold);
+      font-weight: 1000;
+    }
+
+    .header-sub {
+      margin-top: 3px;
+      font-size: 12px;
+      color: var(--muted);
+      font-weight: 700;
+    }
+
+    .welcome {
+      margin: 0;
+      font-size: 24px;
+      font-weight: 1000;
+      color: var(--dark);
+    }
+
+    .welcome-sub {
+      margin: 9px 0 20px;
+      color: var(--muted);
+      font-size: 13.2px;
+      line-height: 1.45;
+      font-weight: 700;
+    }
+
+    .form {
+      display: grid;
+      gap: 10px;
+    }
+
+    .label {
+      font-size: 12px;
+      font-weight: 1000;
+      color: #8a640d;
+      margin-top: 3px;
+    }
+
+    .input-row {
+      min-height: 50px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 0 13px;
+      border-radius: 16px;
+      background: rgba(255, 250, 240, 0.95);
+      border: 1.5px solid #e6c46b;
+      transition: 0.18s ease;
+    }
+
+    .input-row:focus-within {
+      background: #fff;
+      box-shadow: 0 0 0 4px rgba(176, 138, 58, 0.12);
+      border-color: var(--gold);
+    }
+
+    .prefix {
+      font-size: 12px;
+      font-weight: 1000;
+      color: var(--gold);
+      padding-right: 8px;
+      border-right: 1px solid var(--line);
+    }
+
+    .input {
+      width: 100%;
+      border: none;
+      outline: none;
+      background: transparent;
+      font-size: 13.5px;
+      font-weight: 800;
+      color: var(--dark);
+    }
+
+    .input::placeholder {
+      color: #9ca3af;
+      font-weight: 700;
+    }
+
+    .icon-btn {
+      width: 34px;
+      height: 31px;
+      display: grid;
+      place-items: center;
+      border-radius: 10px;
+      border: 1px solid var(--line);
+      background: #fff;
+      color: var(--gold);
+      cursor: pointer;
+      font-size: 14px;
+    }
+
+    .row-between {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin: 3px 0;
+      flex-wrap: wrap;
+    }
+
+    .checkbox {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--muted);
+      font-size: 12.8px;
+      font-weight: 700;
+    }
+
+    .checkbox input {
+      accent-color: var(--gold);
+    }
+
+    .link {
+      color: var(--gold);
+      font-weight: 900;
+      text-decoration: none;
+      font-size: 12.8px;
+    }
+
+    .link:hover {
+      text-decoration: underline;
+    }
+
+    .btn {
+      border: none;
+      min-height: 44px;
+      padding: 0 22px;
+      border-radius: 999px;
+      font-size: 13.5px;
+      font-weight: 1000;
+      cursor: pointer;
+      transition: 0.18s ease;
+    }
+
+    .btn:hover {
+      transform: translateY(-1px);
+    }
+
+    .btn-primary {
+      margin-top: 5px;
+      color: #fff;
+      background: linear-gradient(135deg, #b08a3a, #e4c878, #b08a3a);
+      box-shadow: 0 14px 28px rgba(176, 138, 58, 0.20);
+    }
+
+    .btn-outline {
+      color: var(--gold);
+      background: rgba(255, 255, 255, 0.86);
+      border: 1px solid #e6c46b;
+    }
+
+    .get-started-btn {
+      min-width: 146px;
+      min-height: 43px;
+      font-size: 13.2px;
+    }
+
+    .hint {
+      margin: 14px 0 0;
+      text-align: center;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .modal {
+      position: fixed;
+      inset: 0;
+      z-index: 10;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+      background: rgba(17, 24, 39, 0.48);
+      backdrop-filter: blur(8px);
+    }
+
+    .modal-card {
+      width: min(370px, 100%);
+      text-align: center;
+      background: #fff;
+      border-radius: 24px;
+      border: 1px solid var(--line);
+      padding: 24px;
+      box-shadow: 0 24px 70px rgba(0, 0, 0, 0.18);
+    }
+
+    .modal-icon {
+      width: 54px;
+      height: 54px;
+      margin: 0 auto 12px;
+      display: grid;
+      place-items: center;
+      border-radius: 17px;
+      background: var(--soft);
+      font-size: 26px;
+    }
+
+    .modal-title {
+      margin: 0 0 8px;
+      font-size: 19px;
+      font-weight: 1000;
+      color: var(--dark);
+    }
+
+    .modal-text {
+      margin: 0 0 18px;
+      color: var(--muted);
+      font-size: 13.2px;
+      font-weight: 700;
+      line-height: 1.45;
+    }
+
+    @media (max-width: 520px) {
+      .page {
+        padding: 16px;
+      }
+
+      .start-card {
+        width: min(390px, 100%);
+        min-height: 320px;
+        padding: 28px 20px;
+        border-radius: 24px;
+      }
+
+      .main-logo {
+        width: 125px;
+        height: 125px;
+        margin-bottom: 8px;
+      }
+
+      .brand-title {
+        font-size: 20px;
+        letter-spacing: 2.2px;
+      }
+
+      .tagline {
+        font-size: 12px;
+        max-width: 285px;
+        margin-bottom: 20px;
+      }
+
+      .login-card {
+        padding: 20px;
+        border-radius: 24px;
+      }
+
+      .welcome {
+        font-size: 23px;
+      }
+
+      .row-between {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <!-- PAGE 1: GET STARTED -->
+  <main class="page" id="page-start">
+    <section class="start-card">
+      <img class="main-logo" src="suraya_logo.png" alt="Suraya Seafood logo">
+
+      <h1 class="brand-title">SURAYA SEAFOOD</h1>
+
+      <p class="tagline">
+        Admin portal for reservations, table layout, QR verification and restaurant status management.
+      </p>
+
+      <button class="btn btn-outline get-started-btn" id="btnGetStarted" type="button">
+        Get Started
+      </button>
+    </section>
+  </main>
+
+  <!-- PAGE 2: ADMIN LOGIN -->
+  <main class="page hidden" id="page-login">
+    <section class="login-wrap">
+      <div class="login-card">
+        <div class="card-header">
+          <img class="logo-small" src="suraya_logo.png" alt="Suraya Seafood logo">
+
+          <div class="header-text">
+            <div class="header-brand">SURAYA SEAFOOD</div>
+            <div class="header-sub">Administrator Login</div>
+          </div>
+        </div>
+
+        <h2 class="welcome">Welcome Back</h2>
+        <p class="welcome-sub">
+          Sign in to manage reservations, tables and restaurant operations.
+        </p>
+
+        <form id="loginForm" class="form">
+          <label class="label" for="adminId">Admin ID</label>
+          <div class="input-row">
+            <span class="prefix">ID</span>
+            <input
+              type="text"
+              class="input"
+              id="adminId"
+              autocomplete="username"
+              required
+            />
+          </div>
+
+          <label class="label" for="password">Password</label>
+          <div class="input-row">
+            <input
+              type="password"
+              class="input"
+              placeholder="Enter password"
+              id="password"
+              autocomplete="current-password"
+              required
+            />
+            <button type="button" class="icon-btn" id="togglePw" aria-label="Toggle password">
+              👁
+            </button>
+          </div>
+
+          <div class="row-between">
+            <label class="checkbox">
+              <input type="checkbox" id="rememberMe" />
+              <span>Remember me</span>
+            </label>
+
+            <a class="link" href="#" id="forgotLink">Forgot password?</a>
+          </div>
+
+          <button type="submit" class="btn btn-primary">
+            Login
+          </button>
+
+          <p class="hint">
+            Not an admin? <a class="link" href="#" id="goBackStart">Go back</a>
+          </p>
+        </form>
+      </div>
+    </section>
+  </main>
+
+  <!-- SUCCESS POPUP -->
+  <div class="modal hidden" id="successModal" role="dialog" aria-modal="true">
+    <div class="modal-card">
+      <div class="modal-icon">✅</div>
+      <h3 class="modal-title">Login Successful</h3>
+      <p class="modal-text">Welcome, Admin. Redirecting to dashboard...</p>
+      <button class="btn btn-outline" id="closeModal" type="button">Continue</button>
+    </div>
+  </div>
+
+  <!-- INFO POPUP -->
+  <div class="modal hidden" id="infoModal" role="dialog" aria-modal="true">
+    <div class="modal-card">
+      <div class="modal-icon">ℹ️</div>
+      <h3 class="modal-title" id="infoTitle">Info</h3>
+      <p class="modal-text" id="infoText">...</p>
+      <button class="btn btn-outline" id="closeInfo" type="button">OK</button>
+    </div>
+  </div>
+
+  <script>
+    const pageStart = document.getElementById("page-start");
+    const pageLogin = document.getElementById("page-login");
+    const btnGetStarted = document.getElementById("btnGetStarted");
+    const goBackStart = document.getElementById("goBackStart");
+
+    const loginForm = document.getElementById("loginForm");
+    const adminId = document.getElementById("adminId");
+    const password = document.getElementById("password");
+    const rememberMe = document.getElementById("rememberMe");
+    const togglePw = document.getElementById("togglePw");
+
+    const successModal = document.getElementById("successModal");
+    const closeModal = document.getElementById("closeModal");
+
+    const infoModal = document.getElementById("infoModal");
+    const infoTitle = document.getElementById("infoTitle");
+    const infoText = document.getElementById("infoText");
+    const closeInfo = document.getElementById("closeInfo");
+    const forgotLink = document.getElementById("forgotLink");
+
+    const ADMIN_ID = "mirako";
+    const ADMIN_PASSWORD = "dinesense2025";
+
+    function showLogin() {
+      pageStart.classList.add("hidden");
+      pageLogin.classList.remove("hidden");
+      setTimeout(() => adminId.focus(), 120);
+    }
+
+    function showStart() {
+      pageLogin.classList.add("hidden");
+      pageStart.classList.remove("hidden");
+    }
+
+    function showInfo(title, text) {
+      infoTitle.textContent = title;
+      infoText.textContent = text;
+      infoModal.classList.remove("hidden");
+    }
+
+    btnGetStarted.addEventListener("click", showLogin);
+
+    goBackStart.addEventListener("click", (e) => {
+      e.preventDefault();
+      showStart();
+    });
+
+    togglePw.addEventListener("click", () => {
+      const visible = password.type === "text";
+      password.type = visible ? "password" : "text";
+      togglePw.textContent = visible ? "👁" : "🙈";
+    });
+
+    forgotLink.addEventListener("click", (e) => {
+      e.preventDefault();
+      showInfo(
+        "Password Recovery",
+        "Please contact the system administrator to reset your admin password."
+      );
+    });
+
+    closeInfo.addEventListener("click", () => {
+      infoModal.classList.add("hidden");
+    });
+
+    closeModal.addEventListener("click", () => {
+      window.location.href = "dashboard.html";
+    });
+
+    loginForm.addEventListener("submit", (e) => {
+      e.preventDefault();
+
+      const id = adminId.value.trim();
+      const pw = password.value.trim();
+
+      if (id === ADMIN_ID && pw === ADMIN_PASSWORD) {
+        if (rememberMe.checked) {
+          localStorage.setItem("dinesense_admin_id", id);
+        } else {
+          localStorage.removeItem("dinesense_admin_id");
+        }
+
+        successModal.classList.remove("hidden");
+
+        setTimeout(() => {
+          window.location.href = "dashboard.html";
+        }, 1100);
+
+        return;
+      }
+
+      showInfo(
+        "Login Failed",
+        "Invalid Admin ID or password. Please try again."
+      );
+    });
+
+    window.addEventListener("load", () => {
+      const savedId = localStorage.getItem("dinesense_admin_id");
+
+      if (savedId) {
+        adminId.value = savedId;
+        rememberMe.checked = true;
+      }
+    });
+  </script>
+</body>
+</html>

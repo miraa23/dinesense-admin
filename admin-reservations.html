@@ -1,0 +1,822 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DineSense Admin | Reservations</title>
+  <link rel="stylesheet" href="dash.css">
+
+  <style>
+    .action-buttons {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .btn.small {
+      padding: 8px 10px;
+      font-size: 12px;
+      border-radius: 10px;
+      white-space: nowrap;
+    }
+
+    .btn.change {
+      background: #fff7ed;
+      color: #c2410c;
+      border: 1px solid #fed7aa;
+    }
+
+    .btn.completed {
+      background: #15803d;
+      color: #fff;
+      border: 1px solid #15803d;
+    }
+
+    .btn.arrived {
+      background: #b08a3a;
+      color: #fff;
+      border: 1px solid #b08a3a;
+    }
+
+    .btn.cancel {
+      background: #fff;
+      color: #dc2626;
+      border: 1px solid #fecaca;
+    }
+
+    .btn:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+    }
+
+    .status-pill.arrived {
+      background: #e0f2fe;
+      color: #0369a1;
+      border: 1px solid #bae6fd;
+    }
+
+    .status-pill.completed {
+      background: #dcfce7;
+      color: #166534;
+      border: 1px solid #bbf7d0;
+    }
+
+    .status-pill.cancelled {
+      background: #fee2e2;
+      color: #991b1b;
+      border: 1px solid #fecaca;
+    }
+
+    .status-pill.pending {
+      background: #fef3c7;
+      color: #92400e;
+      border: 1px solid #fde68a;
+    }
+
+    .status-pill.confirmed {
+      background: #ecfdf5;
+      color: #047857;
+      border: 1px solid #a7f3d0;
+    }
+
+    .status-pill.rescheduled {
+      background: #fff7ed;
+      color: #c2410c;
+      border: 1px solid #fed7aa;
+    }
+
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(17, 24, 39, 0.45);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 999;
+      padding: 18px;
+    }
+
+    .modal-backdrop.show {
+      display: flex;
+    }
+
+    .modal-card {
+      width: 100%;
+      max-width: 520px;
+      background: #fff;
+      border-radius: 22px;
+      border: 1px solid #eadfca;
+      box-shadow: 0 20px 60px rgba(0,0,0,.18);
+      padding: 20px;
+    }
+
+    .modal-card h3 {
+      margin: 0 0 6px;
+      color: #111827;
+    }
+
+    .modal-card p {
+      margin: 0 0 16px;
+      color: #6b7280;
+      font-size: 13px;
+      font-weight: 700;
+      line-height: 1.45;
+    }
+
+    .modal-grid {
+      display: grid;
+      gap: 12px;
+    }
+
+    .form-field label {
+      display: block;
+      font-size: 12px;
+      font-weight: 900;
+      color: #6b7280;
+      margin-bottom: 6px;
+    }
+
+    .form-field input,
+    .form-field select,
+    .form-field textarea {
+      width: 100%;
+      box-sizing: border-box;
+      border: 1px solid #eadfca;
+      border-radius: 14px;
+      padding: 12px;
+      font-size: 14px;
+      outline: none;
+      background: #fffaf0;
+      color: #111827;
+      font-weight: 700;
+    }
+
+    .form-field textarea {
+      resize: vertical;
+      min-height: 84px;
+    }
+
+    .modal-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      margin-top: 16px;
+      flex-wrap: wrap;
+    }
+
+    @media (max-width: 760px) {
+      .action-buttons {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .btn.small {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+
+<body>
+<header class="top-header">
+  <div class="brand brand-wrap">
+    <span class="logo">
+      <img src="suraya_logo.png" alt="Suraya Seafood logo">
+    </span>
+
+    <div class="brand-text">
+      <h1>SURAYA SEAFOOD</h1>
+      <p>DineSense Reservation Management</p>
+    </div>
+
+    <nav class="top-nav">
+      <a class="nav-link" href="dashboard.html">Dashboard</a>
+      <a class="nav-link active" href="admin-reservations.html">Reservations</a>
+      <a class="nav-link" href="admin-tables.html">Tables</a>
+      <a class="nav-link" href="admin-closures.html">Closed Dates</a>
+    </nav>
+  </div>
+
+  <div class="header-actions">
+    <span class="status-pill open" id="openStatus">● Connecting Firebase</span>
+  </div>
+</header>
+
+<main class="container">
+  <section class="card">
+    <div class="card-head table-head">
+      <div>
+        <h3>Reservation List</h3>
+        <p class="muted small">Customer app bookings are shown live from Firebase.</p>
+      </div>
+
+      <div class="table-actions">
+        <input class="search" id="reservationSearch" placeholder="Search customer, status, source or table">
+        <a class="btn outline" href="admin-tables.html">Seat Map</a>
+      </div>
+    </div>
+
+    <div class="table-wrap">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Customer</th>
+            <th>Phone</th>
+            <th>Time</th>
+            <th>Pax</th>
+            <th>Table</th>
+            <th>Source</th>
+            <th>Status</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody id="reservationRows"></tbody>
+      </table>
+    </div>
+  </section>
+</main>
+
+<div class="modal-backdrop" id="changeModal">
+  <div class="modal-card">
+    <h3>Change Booking</h3>
+    <p>
+      Use this when a table has a problem, is damaged, or the booking time needs to be adjusted.
+      The customer will receive a notification after saving.
+    </p>
+
+    <div class="modal-grid">
+      <div class="form-field">
+        <label for="changeCustomer">Customer</label>
+        <input id="changeCustomer" type="text" readonly>
+      </div>
+
+      <div class="form-field">
+        <label for="changeDate">New Date</label>
+        <input id="changeDate" type="date">
+      </div>
+
+      <div class="form-field">
+        <label for="changeTime">New Time</label>
+        <input id="changeTime" type="time">
+      </div>
+
+      <div class="form-field">
+        <label for="changeTable">New Table</label>
+        <select id="changeTable">
+          <option value="">Select table</option>
+        </select>
+      </div>
+
+      <div class="form-field">
+        <label for="changeReason">Reason</label>
+        <textarea id="changeReason" placeholder="Example: Original table has a problem, so booking has been moved."></textarea>
+      </div>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn btn-light" type="button" id="closeChangeModalBtn">Cancel</button>
+      <button class="btn btn-gold" type="button" id="saveChangeBtn">Save Changes</button>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+
+import {
+  getFirestore,
+  collection,
+  doc,
+  updateDoc,
+  setDoc,
+  addDoc,
+  onSnapshot,
+  query,
+  orderBy,
+  serverTimestamp
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyCaNALWumkAiZp35XAQhA7IBovtKy8vO84",
+    authDomain: "surayadinesense.firebaseapp.com",
+    projectId: "surayadinesense",
+    storageBucket: "surayadinesense.firebasestorage.app",
+    messagingSenderId: "283332205556",
+    appId: "1:283332205556:web:80e4c14db620e0258737a1"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  const rows = document.getElementById("reservationRows");
+  const searchInput = document.getElementById("reservationSearch");
+  const statusPill = document.getElementById("openStatus");
+
+  const changeModal = document.getElementById("changeModal");
+  const changeCustomer = document.getElementById("changeCustomer");
+  const changeDate = document.getElementById("changeDate");
+  const changeTime = document.getElementById("changeTime");
+  const changeTable = document.getElementById("changeTable");
+  const changeReason = document.getElementById("changeReason");
+  const closeChangeModalBtn = document.getElementById("closeChangeModalBtn");
+  const saveChangeBtn = document.getElementById("saveChangeBtn");
+
+  let reservations = [];
+  let selectedChangeBooking = null;
+
+  const tableOptions = [
+    "T01", "T02", "T03", "T04", "T05", "T06", "T07", "T08",
+    "T09", "T10", "T11", "T12", "T13", "T14", "T15", "T16",
+    "T17", "T18", "T19", "T20", "T21", "T22", "T23", "T24",
+    "T25", "T26", "T27", "T28", "T29", "T30", "T31", "T32",
+    "T33", "T34", "T35", "T36", "T37", "T38", "T39", "T40",
+    "T41", "T42", "T43", "T44", "T45", "T46", "T47", "T48"
+  ];
+
+  changeTable.innerHTML =
+    `<option value="">Select table</option>` +
+    tableOptions.map((table) => `<option value="${table}">${table}</option>`).join("");
+
+  function safe(value) {
+    return value === undefined || value === null || value === "" ? "-" : String(value);
+  }
+
+  function escapeHtml(value) {
+    return String(value ?? "")
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;")
+      .replaceAll("'", "&#039;");
+  }
+
+  function shortId(id) {
+    return id.length > 8 ? id.substring(0, 8) : id;
+  }
+
+  function normalizeStatus(status) {
+    const s = String(status || "confirmed").toLowerCase();
+
+    if (s === "arrived") return "arrived";
+    if (s === "cancelled" || s === "canceled") return "cancelled";
+    if (s === "completed") return "completed";
+    if (s === "pending") return "pending";
+    if (s === "rescheduled") return "rescheduled";
+
+    return "confirmed";
+  }
+
+  function statusLabel(status) {
+    const s = normalizeStatus(status);
+    return s.charAt(0).toUpperCase() + s.slice(1);
+  }
+
+  function getDateText(data) {
+    if (data.date && typeof data.date.toDate === "function") {
+      return data.date.toDate().toLocaleDateString();
+    }
+
+    if (data.bookingDate && typeof data.bookingDate.toDate === "function") {
+      return data.bookingDate.toDate().toLocaleDateString();
+    }
+
+    return safe(data.dateText || data.date || data.bookingDate);
+  }
+
+  function getRawDateInputValue(data) {
+    if (data.date && typeof data.date.toDate === "function") {
+      const d = data.date.toDate();
+      return d.toISOString().slice(0, 10);
+    }
+
+    const dateText = String(data.dateText || data.date || "").trim();
+
+    if (/^\d{4}-\d{2}-\d{2}$/.test(dateText)) {
+      return dateText;
+    }
+
+    return "";
+  }
+
+  function getTimeText(data) {
+    return safe(data.timeText || data.time || data.bookingTime);
+  }
+
+  function getRawTimeInputValue(data) {
+    const value = String(data.time24 || data.bookingTime24 || data.timeInput || "").trim();
+
+    if (/^\d{2}:\d{2}$/.test(value)) {
+      return value;
+    }
+
+    return "";
+  }
+
+  function formatTimeForCustomer(time24) {
+    if (!time24) return "-";
+
+    const [hourRaw, minute] = time24.split(":");
+    let hour = Number(hourRaw);
+    const period = hour >= 12 ? "PM" : "AM";
+
+    hour = hour % 12;
+    if (hour === 0) hour = 12;
+
+    return `${hour}:${minute} ${period}`;
+  }
+
+  function setStatusText(text, isLive = true) {
+    statusPill.textContent = text;
+    statusPill.classList.toggle("open", isLive);
+  }
+
+  async function notifyCustomer(uid, title, message) {
+    if (!uid || uid === "-") return;
+
+    await addDoc(collection(db, "notifications"), {
+      uid,
+      title,
+      message,
+      isRead: false,
+      read: false,
+      createdAt: serverTimestamp(),
+    });
+  }
+
+  async function markArrived(bookingId, table) {
+    await updateDoc(doc(db, "bookings", bookingId), {
+      status: "arrived",
+      checkedInAt: serverTimestamp(),
+      updatedAt: serverTimestamp()
+    });
+
+    if (table && table !== "-") {
+      await updateDoc(doc(db, "tables", table), {
+        status: "occupied",
+        updatedAt: serverTimestamp()
+      });
+    }
+  }
+
+  async function markCompleted(bookingId, table) {
+    const confirmed = confirm("Mark this booking as completed and release the table?");
+
+    if (!confirmed) return;
+
+    await updateDoc(doc(db, "bookings", bookingId), {
+      status: "completed",
+      completedAt: serverTimestamp(),
+      updatedAt: serverTimestamp()
+    });
+
+    if (table && table !== "-") {
+      await updateDoc(doc(db, "tables", table), {
+        status: "available",
+        updatedAt: serverTimestamp()
+      });
+    }
+  }
+
+  async function cancelBooking(bookingId, table, uid) {
+    const confirmed = confirm("Cancel this booking and release the table?");
+
+    if (!confirmed) return;
+
+    await updateDoc(doc(db, "bookings", bookingId), {
+      status: "cancelled",
+      cancelledAt: serverTimestamp(),
+      updatedAt: serverTimestamp()
+    });
+
+    if (table && table !== "-") {
+      await updateDoc(doc(db, "tables", table), {
+        status: "available",
+        updatedAt: serverTimestamp()
+      });
+    }
+
+    await notifyCustomer(
+      uid,
+      "Booking Cancelled",
+      `Your booking has been cancelled by the restaurant. Please contact staff for more information.`
+    );
+  }
+
+  function openChangeModal(itemId) {
+    const item = reservations.find((booking) => booking.id === itemId);
+
+    if (!item) {
+      alert("Booking not found.");
+      return;
+    }
+
+    selectedChangeBooking = item;
+
+    changeCustomer.value = safe(item.customerName || item.name);
+    changeDate.value = getRawDateInputValue(item);
+    changeTime.value = getRawTimeInputValue(item);
+    changeTable.value = safe(item.tableLabel || item.table) === "-" ? "" : safe(item.tableLabel || item.table);
+    changeReason.value = item.rescheduleReason || "";
+
+    changeModal.classList.add("show");
+  }
+
+  function closeChangeModal() {
+    changeModal.classList.remove("show");
+    selectedChangeBooking = null;
+  }
+
+  async function saveBookingChanges() {
+    if (!selectedChangeBooking) return;
+
+    const bookingId = selectedChangeBooking.id;
+    const oldTable = safe(selectedChangeBooking.tableLabel || selectedChangeBooking.table);
+    const uid = selectedChangeBooking.uid || "";
+
+    const newDate = changeDate.value.trim();
+    const newTime24 = changeTime.value.trim();
+    const newTable = changeTable.value.trim();
+    const reason = changeReason.value.trim() || "Booking details were updated by the restaurant.";
+
+    if (!newDate) {
+      alert("Please select a new date.");
+      return;
+    }
+
+    if (!newTime24) {
+      alert("Please select a new time.");
+      return;
+    }
+
+    if (!newTable) {
+      alert("Please select a new table.");
+      return;
+    }
+
+    const newTimeText = formatTimeForCustomer(newTime24);
+
+    saveChangeBtn.disabled = true;
+    setStatusText("● Updating Booking...", true);
+
+    try {
+      await updateDoc(doc(db, "bookings", bookingId), {
+        status: "rescheduled",
+        date: newDate,
+        dateText: newDate,
+        time24: newTime24,
+        timeText: newTimeText,
+        table: newTable,
+        tableLabel: newTable,
+        rescheduleReason: reason,
+        rescheduledAt: serverTimestamp(),
+        updatedAt: serverTimestamp()
+      });
+
+if (oldTable && oldTable !== "-" && oldTable !== newTable) {
+  await setDoc(
+    doc(db, "tables", oldTable),
+    {
+      status: "available",
+      updatedAt: serverTimestamp()
+    },
+    { merge: true }
+  );
+}
+
+if (newTable && newTable !== "-") {
+  await setDoc(
+    doc(db, "tables", newTable),
+    {
+      status: "booked",
+      updatedAt: serverTimestamp()
+    },
+    { merge: true }
+  );
+}
+
+      await notifyCustomer(
+        uid,
+        "Booking Updated",
+        `Your booking has been updated to ${newDate} at ${newTimeText}, table ${newTable}. Reason: ${reason}`
+      );
+
+      closeChangeModal();
+      setStatusText("● Firebase Live", true);
+      alert("Booking updated and customer notification has been sent.");
+    } catch (error) {
+      console.error(error);
+      alert("Failed to update booking: " + (error.message || error));
+      setStatusText("● Update Failed", false);
+    } finally {
+      saveChangeBtn.disabled = false;
+    }
+  }
+
+  function actionButtons(id, table, status, uid) {
+    const isCancelled = status === "cancelled";
+    const isCompleted = status === "completed";
+    const isArrived = status === "arrived";
+
+    if (isCompleted) {
+      return `<span class="muted small">Completed</span>`;
+    }
+
+    if (isCancelled) {
+      return `<span class="muted small">Cancelled</span>`;
+    }
+
+    return `
+      <div class="action-buttons">
+        <button
+          class="btn small change"
+          data-action="change"
+          data-id="${escapeHtml(id)}"
+          data-table="${escapeHtml(table)}"
+          data-uid="${escapeHtml(uid)}"
+        >
+          Change
+        </button>
+
+        <button
+          class="btn small arrived"
+          data-action="arrived"
+          data-id="${escapeHtml(id)}"
+          data-table="${escapeHtml(table)}"
+          ${isArrived ? "disabled" : ""}
+        >
+          Arrived
+        </button>
+
+        <button
+          class="btn small completed"
+          data-action="completed"
+          data-id="${escapeHtml(id)}"
+          data-table="${escapeHtml(table)}"
+        >
+          Completed
+        </button>
+
+        <button
+          class="btn small cancel"
+          data-action="cancel"
+          data-id="${escapeHtml(id)}"
+          data-table="${escapeHtml(table)}"
+          data-uid="${escapeHtml(uid)}"
+        >
+          Cancel
+        </button>
+      </div>
+    `;
+  }
+
+  function renderReservations() {
+    const search = searchInput.value.trim().toLowerCase();
+
+    const filtered = reservations.filter((item) => {
+      const blob = [
+        item.id,
+        item.customerName,
+        item.name,
+        item.phone,
+        item.timeText,
+        item.tableLabel,
+        item.table,
+        item.status,
+        item.source,
+      ].join(" ").toLowerCase();
+
+      return blob.includes(search);
+    });
+
+    if (filtered.length === 0) {
+      rows.innerHTML = `
+        <tr>
+          <td colspan="9" style="text-align:center; padding:18px;">
+            No reservations found.
+          </td>
+        </tr>
+      `;
+      return;
+    }
+
+    rows.innerHTML = filtered.map((item) => {
+      const id = item.id;
+      const status = normalizeStatus(item.status);
+      const table = safe(item.tableLabel || item.table);
+      const customer = safe(item.customerName || item.name);
+      const phone = safe(item.phone);
+      const pax = safe(item.pax);
+      const source = safe(item.source || "Customer App");
+      const uid = safe(item.uid);
+      const time = `${getDateText(item)} ${getTimeText(item)}`;
+
+      return `
+        <tr>
+          <td title="${escapeHtml(id)}">${escapeHtml(shortId(id))}</td>
+          <td>${escapeHtml(customer)}</td>
+          <td>${escapeHtml(phone)}</td>
+          <td>${escapeHtml(time)}</td>
+          <td>${escapeHtml(pax)}</td>
+          <td>${escapeHtml(table)}</td>
+          <td>${escapeHtml(source)}</td>
+          <td>
+            <span class="status-pill ${status}">
+              ${escapeHtml(statusLabel(status))}
+            </span>
+          </td>
+          <td>
+            ${actionButtons(id, table, status, uid)}
+          </td>
+        </tr>
+      `;
+    }).join("");
+
+    rows.querySelectorAll("button[data-action]").forEach((button) => {
+      button.addEventListener("click", async () => {
+        const id = button.dataset.id;
+        const table = button.dataset.table;
+        const uid = button.dataset.uid;
+        const action = button.dataset.action;
+
+        if (action === "change") {
+          openChangeModal(id);
+          return;
+        }
+
+        button.disabled = true;
+        setStatusText("● Updating...", true);
+
+        try {
+          if (action === "arrived") {
+            await markArrived(id, table);
+          }
+
+          if (action === "completed") {
+            await markCompleted(id, table);
+          }
+
+          if (action === "cancel") {
+            await cancelBooking(id, table, uid);
+          }
+
+          setStatusText("● Firebase Live", true);
+        } catch (error) {
+          console.error(error);
+          alert("Failed to update reservation. Please check Firebase rules.");
+          setStatusText("● Update Failed", false);
+        } finally {
+          button.disabled = false;
+        }
+      });
+    });
+  }
+
+  searchInput.addEventListener("input", renderReservations);
+  closeChangeModalBtn.addEventListener("click", closeChangeModal);
+  saveChangeBtn.addEventListener("click", saveBookingChanges);
+
+  changeModal.addEventListener("click", (event) => {
+    if (event.target === changeModal) {
+      closeChangeModal();
+    }
+  });
+
+  function startLiveReservations() {
+    const q = query(
+      collection(db, "bookings"),
+      orderBy("createdAt", "desc")
+    );
+
+    onSnapshot(
+      q,
+      (snapshot) => {
+        reservations = snapshot.docs.map((docSnap) => ({
+          id: docSnap.id,
+          ...docSnap.data()
+        }));
+
+        renderReservations();
+        setStatusText("● Firebase Live", true);
+      },
+      (error) => {
+        console.error(error);
+
+        rows.innerHTML = `
+          <tr>
+            <td colspan="9" style="text-align:center; padding:18px; color:#b91c1c;">
+              Firebase Error. Check Firestore rules or createdAt index.
+            </td>
+          </tr>
+        `;
+
+        setStatusText("● Firebase Error", false);
+      }
+    );
+  }
+
+  startLiveReservations();
+</script>
+</body>
+</html>

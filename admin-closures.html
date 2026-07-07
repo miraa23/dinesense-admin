@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DineSense Admin | Closed Dates</title>
+  <link rel="stylesheet" href="dash.css">
+
+  <style>
+    .closure-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr auto;
+      gap: 12px;
+      align-items: end;
+    }
+
+    .form-field label {
+      display: block;
+      font-size: 12px;
+      font-weight: 900;
+      color: #6b7280;
+      margin-bottom: 6px;
+    }
+
+    .form-field input {
+      width: 100%;
+      box-sizing: border-box;
+      border: 1px solid #eadfca;
+      border-radius: 14px;
+      padding: 12px;
+      font-size: 14px;
+      outline: none;
+      background: #fffaf0;
+      color: #111827;
+      font-weight: 700;
+    }
+
+    .btn-danger {
+      background: #fee2e2;
+      color: #991b1b;
+      border: 1px solid #fecaca;
+    }
+
+    .closed-pill {
+      display: inline-flex;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: #fee2e2;
+      color: #991b1b;
+      border: 1px solid #fecaca;
+      font-size: 12px;
+      font-weight: 900;
+    }
+
+    @media (max-width: 760px) {
+      .closure-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+
+<body>
+<header class="top-header">
+  <div class="brand brand-wrap">
+    <span class="logo">
+      <img src="suraya_logo.png" alt="Suraya Seafood logo">
+    </span>
+
+    <div class="brand-text">
+      <h1>SURAYA SEAFOOD</h1>
+      <p>Restaurant Closed Dates</p>
+    </div>
+
+    <nav class="top-nav">
+      <a class="nav-link" href="dashboard.html">Dashboard</a>
+      <a class="nav-link" href="admin-reservations.html">Reservations</a>
+      <a class="nav-link" href="admin-tables.html">Tables</a>
+      <a class="nav-link active" href="admin-closures.html">Closed Dates</a>
+    </nav>
+  </div>
+
+  <div class="header-actions">
+    <span class="status-pill open" id="firebaseStatus">● Connecting Firebase</span>
+  </div>
+</header>
+
+<main class="container">
+  <section class="card">
+    <div class="card-head">
+      <div>
+        <h3>Add Closed Date</h3>
+        <p class="muted small">
+          Add any date when the restaurant is closed. Customer booking will be blocked for that date.
+        </p>
+      </div>
+    </div>
+
+    <div class="closure-grid">
+      <div class="form-field">
+        <label for="closeDate">Closed Date</label>
+        <input id="closeDate" type="date">
+      </div>
+
+      <div class="form-field">
+        <label for="closeReason">Reason</label>
+        <input id="closeReason" type="text" placeholder="Example: Public holiday / Maintenance">
+      </div>
+
+      <button class="btn btn-gold" id="addClosureBtn" type="button">
+        Add Closed Date
+      </button>
+    </div>
+  </section>
+
+  <section class="card">
+    <div class="card-head table-head">
+      <div>
+        <h3>Closed Dates List</h3>
+        <p class="muted small">All blocked booking dates are shown here.</p>
+      </div>
+    </div>
+
+    <div class="table-wrap">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Reason</th>
+            <th>Status</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody id="closureRows"></tbody>
+      </table>
+    </div>
+  </section>
+</main>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+
+  import {
+    getFirestore,
+    collection,
+    doc,
+    setDoc,
+    deleteDoc,
+    onSnapshot,
+    query,
+    orderBy,
+    serverTimestamp
+  } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyCaNALWumkAiZp35XAQhA7IBovtKy8vO84",
+    authDomain: "surayadinesense.firebaseapp.com",
+    projectId: "surayadinesense",
+    storageBucket: "surayadinesense.firebasestorage.app",
+    messagingSenderId: "283332205556",
+    appId: "1:283332205556:web:80e4c14db620e0258737a1"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  const closeDate = document.getElementById("closeDate");
+  const closeReason = document.getElementById("closeReason");
+  const addClosureBtn = document.getElementById("addClosureBtn");
+  const closureRows = document.getElementById("closureRows");
+  const firebaseStatus = document.getElementById("firebaseStatus");
+
+  function safe(value) {
+    return value === undefined || value === null || value === "" ? "-" : String(value);
+  }
+
+  function escapeHtml(value) {
+    return String(value ?? "")
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;")
+      .replaceAll("'", "&#039;");
+  }
+
+  function setStatus(text, live = true) {
+    firebaseStatus.textContent = text;
+    firebaseStatus.classList.toggle("open", live);
+  }
+
+  async function addClosedDate() {
+    const date = closeDate.value.trim();
+    const reason = closeReason.value.trim() || "Restaurant closed";
+
+    if (!date) {
+      alert("Please select a closed date.");
+      return;
+    }
+
+    addClosureBtn.disabled = true;
+    setStatus("● Saving...", true);
+
+    try {
+      await setDoc(doc(db, "restaurant_closures", date), {
+        date,
+        reason,
+        isClosed: true,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp()
+      }, { merge: true });
+
+      closeDate.value = "";
+      closeReason.value = "";
+
+      setStatus("● Firebase Live", true);
+      alert("Closed date added successfully.");
+    } catch (error) {
+      console.error(error);
+      setStatus("● Save Failed", false);
+      alert("Failed to add closed date: " + (error.message || error));
+    } finally {
+      addClosureBtn.disabled = false;
+    }
+  }
+
+  async function removeClosedDate(date) {
+    const confirmed = confirm("Remove this closed date and allow booking again?");
+
+    if (!confirmed) return;
+
+    try {
+      await deleteDoc(doc(db, "restaurant_closures", date));
+      setStatus("● Firebase Live", true);
+    } catch (error) {
+      console.error(error);
+      setStatus("● Delete Failed", false);
+      alert("Failed to remove closed date: " + (error.message || error));
+    }
+  }
+
+  function renderRows(snapshot) {
+    const docs = snapshot.docs;
+
+    if (docs.length === 0) {
+      closureRows.innerHTML = `
+        <tr>
+          <td colspan="4" style="text-align:center; padding:18px;">
+            No closed dates added yet.
+          </td>
+        </tr>
+      `;
+      return;
+    }
+
+    closureRows.innerHTML = docs.map((docSnap) => {
+      const data = docSnap.data();
+      const date = docSnap.id;
+
+      return `
+        <tr>
+          <td>${escapeHtml(date)}</td>
+          <td>${escapeHtml(safe(data.reason))}</td>
+          <td><span class="closed-pill">Closed</span></td>
+          <td>
+            <button
+              class="btn btn-danger"
+              data-date="${escapeHtml(date)}"
+              type="button"
+            >
+              Remove
+            </button>
+          </td>
+        </tr>
+      `;
+    }).join("");
+
+    closureRows.querySelectorAll("button[data-date]").forEach((button) => {
+      button.addEventListener("click", async () => {
+        await removeClosedDate(button.dataset.date);
+      });
+    });
+  }
+
+  addClosureBtn.addEventListener("click", addClosedDate);
+
+  const q = query(
+    collection(db, "restaurant_closures"),
+    orderBy("date", "asc")
+  );
+
+  onSnapshot(
+    q,
+    (snapshot) => {
+      renderRows(snapshot);
+      setStatus("● Firebase Live", true);
+    },
+    (error) => {
+      console.error(error);
+      closureRows.innerHTML = `
+        <tr>
+          <td colspan="4" style="text-align:center; padding:18px; color:#b91c1c;">
+            Firebase error. Check Firestore rules.
+          </td>
+        </tr>
+      `;
+      setStatus("● Firebase Error", false);
+    }
+  );
+</script>
+</body>
+</html>

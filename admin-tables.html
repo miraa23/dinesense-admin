@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>DineSense Admin | Table Layout</title>
+
+  <link rel="stylesheet" href="dash.css">
+  <link rel="stylesheet" href="table-map.css?v=7">
+
+  <style>
+    .cashier-main {
+      left: 41.2% !important;
+      top: 74.5% !important;
+      transform: translateX(-50%);
+    }
+
+    .booth-middle {
+      left: 41.2% !important;
+      top: 79.0% !important;
+      transform: translateX(-50%);
+    }
+  </style>
+</head>
+
+<body>
+<header class="top-header">
+  <div class="brand brand-wrap">
+    <span class="logo">
+      <img src="suraya_logo.png" alt="Suraya Seafood Logo">
+    </span>
+
+    <div class="brand-text">
+      <h1>SURAYA SEAFOOD</h1>
+      <p>Table Layout Management</p>
+    </div>
+
+    <nav class="top-nav">
+      <a class="nav-link" href="dashboard.html">Dashboard</a>
+      <a class="nav-link" href="admin-reservations.html">Reservations</a>
+      <a class="nav-link active" href="admin-tables.html">Tables</a>
+      <a class="nav-link" href="admin-closures.html">Closed Dates</a>
+    </nav>
+  </div>
+
+  <div class="header-actions">
+    <span class="status-pill open" id="openStatus">● Live</span>
+  </div>
+</header>
+
+<main class="container">
+  <section class="card">
+    <div class="card-head">
+      <div>
+        <h3>Restaurant Table Layout</h3>
+        <p class="muted small">Live table map synced with customer app.</p>
+      </div>
+
+      <div class="legend-wrap">
+        <div class="legend-item">
+          <span class="legend-box available-box"></span>
+          <span>Available</span>
+        </div>
+
+        <div class="legend-item">
+          <span class="legend-box booked-box"></span>
+          <span>Booked</span>
+        </div>
+
+        <div class="legend-item">
+          <span class="legend-box occupied-box"></span>
+          <span>Occupied</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="map-shell">
+      <div class="live-seat-map">
+        <div id="tableOverlay"></div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+
+  import {
+    getFirestore,
+    collection,
+    doc,
+    getDoc,
+    setDoc,
+    onSnapshot,
+    serverTimestamp
+  } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyCaNALWumkAiZp35XAQhA7IBovtKy8vO84",
+    authDomain: "surayadinesense.firebaseapp.com",
+    projectId: "surayadinesense",
+    storageBucket: "surayadinesense.firebasestorage.app",
+    messagingSenderId: "283332205556",
+    appId: "1:283332205556:web:80e4c14db620e0258737a1"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  const COLLECTION_NAME = "tables";
+
+  const tablePositions = [
+    { id: "T01", seats: 6, shape: "rect-wide", top: 6.7, left: 39 },
+    { id: "T02", seats: 4, shape: "rect-small", top: 6.7, left: 56.5 },
+    { id: "T03", seats: 4, shape: "rect-small", top: 6.7, left: 66.5 },
+    { id: "T04", seats: 4, shape: "rect-small", top: 6.7, left: 76.5 },
+
+    { id: "T05", seats: 4, shape: "circle", top: 14.6, left: 13.5 },
+    { id: "T06", seats: 4, shape: "rect-small", top: 13.0, left: 23.8 },
+    { id: "T07", seats: 8, shape: "rect-wide", top: 13.0, left: 41.2 },
+    { id: "T08", seats: 8, shape: "rect-wide", top: 13.0, left: 63.5 },
+    { id: "T09", seats: 4, shape: "rect-small", top: 13.0, left: 79.5 },
+    { id: "T10", seats: 4, shape: "rect-small", top: 10.0, left: 95.0 },
+
+    { id: "T11", seats: 4, shape: "circle", top: 21.0, left: 13.5 },
+    { id: "T12", seats: 4, shape: "rect-small", top: 19.3, left: 23.8 },
+    { id: "T13", seats: 8, shape: "rect-wide", top: 19.3, left: 41.2 },
+    { id: "T14", seats: 8, shape: "rect-wide", top: 19.3, left: 63.5 },
+    { id: "T15", seats: 4, shape: "rect-small", top: 19.3, left: 79.5 },
+    { id: "T16", seats: 4, shape: "rect-small", top: 16.1, left: 95.0 },
+
+    { id: "T17", seats: 4, shape: "circle", top: 27.5, left: 13.5 },
+    { id: "T18", seats: 4, shape: "rect-small", top: 25.5, left: 23.8 },
+    { id: "T19", seats: 8, shape: "rect-wide", top: 25.5, left: 41.2 },
+    { id: "T20", seats: 8, shape: "rect-wide", top: 25.5, left: 63.5 },
+    { id: "T21", seats: 4, shape: "rect-small", top: 25.5, left: 79.5 },
+    { id: "T22", seats: 4, shape: "rect-small", top: 22.3, left: 95.0 },
+
+    { id: "T23", seats: 4, shape: "circle", top: 34.0, left: 13.5 },
+    { id: "T24", seats: 4, shape: "rect-small", top: 31.7, left: 23.8 },
+    { id: "T25", seats: 8, shape: "rect-wide", top: 31.7, left: 41.2 },
+    { id: "T26", seats: 8, shape: "rect-wide", top: 31.7, left: 63.5 },
+    { id: "T27", seats: 4, shape: "rect-small", top: 31.7, left: 79.5 },
+    { id: "T28", seats: 4, shape: "rect-small", top: 28.6, left: 95.0 },
+
+    { id: "T29", seats: 4, shape: "circle", top: 40.5, left: 13.5 },
+    { id: "T30", seats: 4, shape: "rect-small", top: 38.0, left: 23.8 },
+    { id: "T31", seats: 8, shape: "rect-wide", top: 38.0, left: 41.2 },
+    { id: "T32", seats: 8, shape: "rect-wide", top: 38.0, left: 63.5 },
+    { id: "T33", seats: 4, shape: "rect-small", top: 38.0, left: 79.5 },
+
+    { id: "T34", seats: 4, shape: "circle", top: 46.8, left: 13.5 },
+    { id: "T35", seats: 4, shape: "rect-small", top: 44.5, left: 23.8 },
+    { id: "T36", seats: 8, shape: "rect-wide", top: 44.5, left: 41.2 },
+    { id: "T37", seats: 8, shape: "rect-wide", top: 44.5, left: 63.5 },
+    { id: "T38", seats: 4, shape: "rect-small", top: 44.5, left: 95.0 },
+
+    { id: "T39", seats: 8, shape: "rect-wide", top: 50.0, left: 41.2 },
+    { id: "T40", seats: 8, shape: "rect-wide", top: 50.0, left: 63.5 },
+    { id: "T41", seats: 4, shape: "rect-small", top: 50.0, left: 95.0 },
+
+    { id: "T42", seats: 8, shape: "rect-wide-lower", top: 57.5, left: 41.2 },
+    { id: "T43", seats: 8, shape: "rect-wide-lower", top: 57.5, left: 63.5 },
+    { id: "T44", seats: 8, shape: "rect-wide-lower", top: 61.5, left: 41.2 },
+    { id: "T45", seats: 8, shape: "rect-wide-lower", top: 61.5, left: 63.5 },
+    { id: "T46", seats: 8, shape: "rect-wide-lower", top: 65.5, left: 41.2 },
+    { id: "T47", seats: 8, shape: "rect-wide-lower", top: 69.6, left: 41.2 },
+    { id: "T48", seats: 6, shape: "circle", top: 59.0, left: 93.0 }
+  ];
+
+  function normalizeStatus(status) {
+    const s = String(status || "available").toLowerCase();
+
+    if (s === "empty") return "available";
+    if (s === "available") return "available";
+    if (s === "reserved") return "booked";
+    if (s === "booked") return "booked";
+    if (s === "occupied") return "occupied";
+
+    return "available";
+  }
+
+  function statusClass(status) {
+    const s = normalizeStatus(status);
+
+    if (s === "booked") return "status-booked";
+    if (s === "occupied") return "status-occupied";
+
+    return "status-available";
+  }
+
+  function nextStatus(status) {
+    const s = normalizeStatus(status);
+
+    if (s === "available") return "booked";
+    if (s === "booked") return "occupied";
+
+    return "available";
+  }
+
+  async function seedTablesIfMissing() {
+    for (const table of tablePositions) {
+      const ref = doc(db, COLLECTION_NAME, table.id);
+      const snap = await getDoc(ref);
+
+      if (snap.exists()) continue;
+
+      await setDoc(ref, {
+        label: table.id,
+        seats: table.seats,
+        status: "available",
+        updatedAt: serverTimestamp()
+      });
+    }
+  }
+
+  async function updateTableStatus(tableId, status) {
+    const table = tablePositions.find(t => t.id === tableId);
+
+    await setDoc(
+      doc(db, COLLECTION_NAME, tableId),
+      {
+        label: tableId,
+        seats: table?.seats || 4,
+        status: normalizeStatus(status),
+        updatedAt: serverTimestamp()
+      },
+      { merge: true }
+    );
+  }
+
+  function renderTableMapDirect(statusMap = {}) {
+    const overlay = document.getElementById("tableOverlay");
+    if (!overlay) return;
+
+    const layoutItemsHTML = `
+      <div class="food-booth booth-left"></div>
+      <div class="food-booth booth-middle"></div>
+
+      <div class="cashier cashier-small">cashier</div>
+      <div class="cashier cashier-main">cashier</div>
+
+      <div class="restaurant-entrance">entrance</div>
+    `;
+
+    const tablesHTML = tablePositions.map(table => {
+      const status = normalizeStatus(statusMap[table.id] || "available");
+
+      return `
+        <button
+          class="map-table ${table.shape} ${statusClass(status)}"
+          style="top:${table.top}%; left:${table.left}%;"
+          title="${table.id} - ${status}"
+          type="button"
+          data-table-id="${table.id}"
+          data-status="${status}"
+        >
+          ${table.seats}
+        </button>
+      `;
+    }).join("");
+
+    overlay.innerHTML = layoutItemsHTML + tablesHTML;
+
+overlay.querySelectorAll(".map-table").forEach(button => {
+  button.addEventListener("click", async () => {
+    const tableId = button.dataset.tableId;
+    const currentStatus = normalizeStatus(button.dataset.status);
+
+    // AVAILABLE → tiada action
+    if (currentStatus === "available") {
+      return;
+    }
+
+    // BOOKED → tidak boleh clear dari map
+    if (currentStatus === "booked") {
+      alert(
+        `${tableId} is currently booked.\n\n` +
+        `Please manage or cancel this booking from the Reservations page.`
+      );
+      return;
+    }
+
+    // OCCUPIED → boleh clear untuk walk-in
+    if (currentStatus === "occupied") {
+      const confirmed = confirm(
+        `Are you sure you want to clear ${tableId}?\n\n` +
+        `This will remove the occupied status and make the table available again.`
+      );
+
+      if (!confirmed) {
+        return;
+      }
+
+      button.disabled = true;
+
+      try {
+        await updateTableStatus(tableId, "available");
+      } catch (error) {
+        console.error("Failed to clear occupied table:", error);
+        alert("Failed to update table status. Please check Firebase.");
+      } finally {
+        button.disabled = false;
+      }
+    }
+  });
+});
+  }
+
+  async function startLiveTableMap() {
+    const statusPill = document.getElementById("openStatus");
+
+    try {
+      if (statusPill) statusPill.textContent = "● Connecting Firebase";
+
+      await seedTablesIfMissing();
+
+      onSnapshot(
+        collection(db, COLLECTION_NAME),
+        (snapshot) => {
+          const statusMap = {};
+
+          snapshot.forEach((docSnap) => {
+            statusMap[docSnap.id] = docSnap.data().status || "available";
+          });
+
+          renderTableMapDirect(statusMap);
+
+          if (statusPill) {
+            statusPill.textContent = "● Firebase Live";
+            statusPill.classList.add("open");
+          }
+        },
+        (error) => {
+          console.error("Firestore listener error:", error);
+          renderTableMapDirect({});
+
+          if (statusPill) {
+            statusPill.textContent = "● Firebase Error";
+            statusPill.classList.remove("open");
+          }
+        }
+      );
+    } catch (error) {
+      console.error("Firebase setup error:", error);
+      renderTableMapDirect({});
+
+      if (statusPill) {
+        statusPill.textContent = "● Firebase Error";
+        statusPill.classList.remove("open");
+      }
+    }
+  }
+
+  startLiveTableMap();
+</script>
+
+</body>
+</html>
